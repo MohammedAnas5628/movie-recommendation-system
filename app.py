@@ -193,14 +193,7 @@ div[data-testid="stVerticalBlock"] > div {
     display: block !important;
 }
 
-/* ── HIDE native stButton completely when we use custom HTML buttons ── */
-.stButton > button {
-    display: none !important;
-}
-
-/* =============================================
-   CUSTOM ERA & MOOD BUTTONS
-   ============================================= */
+.stButton > button { display: none !important; }
 
 .custom-btn-grid {
     display: grid;
@@ -252,10 +245,7 @@ div[data-testid="stVerticalBlock"] > div {
     box-shadow: 0 0 0 1px rgba(167,139,250,0.3), 0 8px 32px rgba(109,40,217,0.45), 0 0 50px rgba(196,132,252,0.15), inset 0 1px 0 rgba(255,255,255,0.1) !important;
 }
 
-.btn-emoji {
-    font-size: 1.9rem;
-    line-height: 1;
-}
+.btn-emoji { font-size: 1.9rem; line-height: 1; }
 
 .btn-label {
     font-family: 'DM Serif Display', serif;
@@ -277,10 +267,6 @@ div[data-testid="stVerticalBlock"] > div {
     text-align: center;
     line-height: 1.2;
 }
-
-/* =============================================
-   MOVIE RESULT CARDS
-   ============================================= */
 
 .movie-card {
     background: linear-gradient(160deg, rgba(15,10,35,0.95), rgba(25,10,40,0.9));
@@ -352,17 +338,57 @@ div[data-testid="stVerticalBlock"] > div {
     color: rgba(167,139,250,0.4);
 }
 
-/* Back button — keep native for results page */
-.back-btn > button {
-    display: flex !important;
-    background: rgba(10,8,28,0.7) !important;
-    border: 1px solid rgba(167,139,250,0.3) !important;
-    color: #d4c5f9 !important;
-    font-family: 'Cormorant Garamond', serif !important;
-    font-size: 1.1rem !important;
-    letter-spacing: 2px !important;
-    border-radius: 10px !important;
-    padding: 8px 22px !important;
+.loading-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 60vh;
+    text-align: center;
+}
+
+.loading-title {
+    font-family: 'Cinzel', serif;
+    font-size: 2rem;
+    letter-spacing: 6px;
+    background: linear-gradient(90deg, #c084fc, #f472b6, #c084fc);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: shine 2s linear infinite;
+    margin-bottom: 20px;
+}
+
+.loading-sub {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.2rem;
+    letter-spacing: 3px;
+    color: rgba(196,181,253,0.7);
+    margin-bottom: 40px;
+}
+
+.film-strip {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 30px;
+}
+
+.film-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #a855f7, #ec4899);
+    animation: bounce 1.2s ease-in-out infinite;
+}
+
+.film-dot:nth-child(2) { animation-delay: 0.2s; }
+.film-dot:nth-child(3) { animation-delay: 0.4s; }
+.film-dot:nth-child(4) { animation-delay: 0.6s; }
+.film-dot:nth-child(5) { animation-delay: 0.8s; }
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); opacity: 0.4; }
+    50% { transform: translateY(-15px); opacity: 1; }
 }
 
 @keyframes pulse-border{
@@ -394,10 +420,6 @@ vectors = cv.transform(movies['tags']).toarray()
 
 API_KEY = "56c2d898d35f479689951fd7e0242a98"
 
-# =========================
-# FETCH POSTER
-# =========================
-
 def fetch_poster(movie_id):
     try:
         movie_id = int(movie_id)
@@ -410,10 +432,6 @@ def fetch_poster(movie_id):
     except:
         return "https://via.placeholder.com/500x750?text=No+Poster"
 
-# =========================
-# MOOD TAGS
-# =========================
-
 mood_tags = {
     '🤯 Mind Bending': "scifi thriller mystery dream twist mind psychology illusion reality",
     '🚀 Adventure':    "action adventure fantasy epic hero journey quest warrior",
@@ -422,10 +440,6 @@ mood_tags = {
     '😨 Edge of Seat': "horror suspense dark crime thriller violence scary tension",
     '😢 Emotional':    "sad drama grief loss family emotional deep touching heart"
 }
-
-# =========================
-# RECOMMEND FUNCTION
-# =========================
 
 def recommend(mood, era=None):
     mood_vector = cv.transform([mood_tags[mood]]).toarray()
@@ -436,9 +450,9 @@ def recommend(mood, era=None):
         movie = movies.iloc[i[0]]
         if era and era != 'All':
             year = int(str(movie['release_date'])[:4])
-            if era == 'New'     and year < 2010:              continue
-            if era == 'Mid'     and not (1990 <= year < 2010): continue
-            if era == 'Classic' and year >= 1990:             continue
+            if era == 'New'     and year < 2010:               continue
+            if era == 'Mid'     and not (1990 <= year < 2010):  continue
+            if era == 'Classic' and year >= 1990:              continue
         recommended.append({
             'title':    movie['title'],
             'movie_id': movie['movie_id'],
@@ -450,29 +464,44 @@ def recommend(mood, era=None):
             break
     return recommended
 
-# =========================
-# SESSION STATE
-# =========================
-
 if 'page'          not in st.session_state: st.session_state.page          = 'home'
 if 'selected_mood' not in st.session_state: st.session_state.selected_mood = None
 if 'selected_era'  not in st.session_state: st.session_state.selected_era  = 'All'
 
-# =========================
-# URL-PARAM TRIGGERS
-# (custom HTML buttons post to ?era=X or ?mood=X)
-# =========================
-
 params = st.query_params
 
+# ===== ERA LOADING ANIMATION =====
 if 'era' in params:
-    st.session_state.selected_era = params['era']
+    new_era = params['era']
+    st.session_state.selected_era = new_era
     st.query_params.clear()
+
+    era_names = {
+        'All': 'All Eras', 'New': 'New Age',
+        'Mid': 'Golden Mid', 'Classic': 'Classics'
+    }
+    st.markdown(f"""
+    <div class="loading-screen">
+        <div style="font-size:4rem; margin-bottom:20px;">🕐</div>
+        <div class="loading-title">Switching Era</div>
+        <div class="loading-sub">Loading {era_names.get(new_era, new_era)} movies...</div>
+        <div class="film-strip">
+            <div class="film-dot"></div>
+            <div class="film-dot"></div>
+            <div class="film-dot"></div>
+            <div class="film-dot"></div>
+            <div class="film-dot"></div>
+        </div>
+        <div style="font-family:'Cormorant Garamond',serif; font-size:1rem; letter-spacing:4px; color:rgba(167,139,250,0.4);">
+            LIGHTS · CAMERA · ACTION
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
     st.rerun()
 
+# ===== MOOD PARAM — no loading animation, go straight to results =====
 if 'mood' in params:
     raw = params['mood']
-    # map URL-safe key back to full mood key
     mood_map = {
         'mind':      '🤯 Mind Bending',
         'adventure': '🚀 Adventure',
@@ -547,7 +576,6 @@ if st.session_state.page == 'home':
     </div>
     """, unsafe_allow_html=True)
 
-    # ── ERA SELECTOR ───────────────────────────────────────────────────
     st.markdown('<span class="section-heading">🕐 &nbsp; Choose Your Movie Era</span>', unsafe_allow_html=True)
 
     sel_era = st.session_state.selected_era
@@ -573,7 +601,6 @@ if st.session_state.page == 'home':
 
     st.markdown("<hr>", unsafe_allow_html=True)
 
-    # ── MOOD SELECTOR ──────────────────────────────────────────────────
     st.markdown('<span class="section-heading">🎭 &nbsp; Select Your Mood</span>', unsafe_allow_html=True)
 
     mood_options = [
@@ -602,8 +629,33 @@ if st.session_state.page == 'home':
 
 if st.session_state.page == 'results':
 
-    if st.button("← Back to Home"):
+    st.markdown("""
+    <div style="padding: 20px 10px 0 10px;">
+        <a href="?home=1" style="
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 28px;
+            background: linear-gradient(135deg, rgba(109,40,217,0.25), rgba(157,23,77,0.2));
+            border: 1px solid rgba(196,132,252,0.45);
+            border-radius: 12px;
+            text-decoration: none;
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.1rem;
+            letter-spacing: 3px;
+            color: #e9d5ff;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 20px rgba(167,139,250,0.15), inset 0 1px 0 rgba(255,255,255,0.06);
+            transition: all 0.3s ease;
+        ">
+            🎬 &nbsp; MOODFLIX &nbsp;·&nbsp; HOME
+        </a>
+    </div>
+    """, unsafe_allow_html=True)
+
+    if 'home' in st.query_params:
         st.session_state.page = 'home'
+        st.query_params.clear()
         st.rerun()
 
     st.markdown(
@@ -617,6 +669,7 @@ if st.session_state.page == 'results':
     st.markdown("<hr>", unsafe_allow_html=True)
 
     results = recommend(st.session_state.selected_mood, st.session_state.selected_era)
+    posters = [fetch_poster(movie['movie_id']) for movie in results]
 
     for i in range(0, len(results), 5):
         cols = st.columns(5)
@@ -625,8 +678,7 @@ if st.session_state.page == 'results':
                 movie = results[i + j]
                 rank = i + j + 1
                 with col:
-                    poster = fetch_poster(movie['movie_id'])
-                    st.image(poster, use_container_width=True)
+                    st.image(posters[i + j], use_container_width=True)
                     st.markdown(f"""
                     <div class="movie-card">
                         <div class="movie-rank">#{rank}</div>
